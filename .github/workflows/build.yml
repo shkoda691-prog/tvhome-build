@@ -1,0 +1,42 @@
+name: Build launcher APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Gathin23/cleanyourtv
+          ref: f9f0c5353e65c5003d5f2f45784a30c5dee19ecb
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platforms;android-34 build-tools;34.0.0
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build release APK
+        working-directory: launcher
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvhome-apk
+          path: launcher/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
